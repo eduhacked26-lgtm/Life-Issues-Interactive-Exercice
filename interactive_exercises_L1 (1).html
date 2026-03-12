@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Exercises — Life Concerns</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1923;
+    --surface: #162130;
+    --surface2: #1e2f42;
+    --border: #2a3f56;
+    --teal: #19c4a8;
+    --teal-dim: #0e7a68;
+    --amber: #f0a030;
+    --amber-dim: #8a5c18;
+    --plum: #c06af0;
+    --plum-dim: #6a3a88;
+    --green: #4cda8a;
+    --green-dim: #1a6040;
+    --red: #f05070;
+    --red-dim: #6a2030;
+    --text: #e8edf2;
+    --muted: #7a9ab8;
+    --white: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0a3356 0%, #0f1923 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  header .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header .logo .icon {
+    width: 40px; height: 40px;
+    background: var(--teal);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  header .logo .title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  header .logo .sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+  .progress-bar-wrap {
+    flex: 1;
+    max-width: 300px;
+  }
+  .progress-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+  .score-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--teal);
+    white-space: nowrap;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* ── EXERCISE NAV ── */
+  .ex-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .ex-tab {
+    padding: 7px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .ex-tab:hover { border-color: var(--teal); color: var(--teal); }
+  .ex-tab.active {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: var(--bg);
+    font-weight: 600;
+  }
+  .ex-tab .done-dot {
+    position: absolute;
+    top: -4px; right: -4px;
+    width: 10px; height: 10px;
+    background: var(--green);
+    border-radius: 50%;
+    display: none;
+    border: 2px solid var(--bg);
+  }
+  .ex-tab.completed .done-dot { display: block; }
+
+  /* ── EXERCISE PANELS ── */
+  .exercise { display: none; }
+  .exercise.active { display: block; }
+
+  /* ── EXERCISE HEADER ── */
+  .ex-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ex-badge {
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    border: 2px solid var(--teal);
+  }
+  .ex-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .ex-desc { font-size: 13px; color: var(--muted); }
+  .ex-points {
+    margin-left: auto;
+    background: var(--teal-dim);
+    color: var(--teal);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── INSTRUCTION BOX ── */
+  .instruction {
+    background: var(--surface);
+    border-left: 3px solid var(--teal);
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-style: italic;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  /* ── MATCHING EXERCISE ── */
+  .match-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .match-col h4 {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .match-item {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 13.5px;
+    transition: all 0.18s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+  }
+  .match-item:hover { border-color: var(--teal); }
+  .match-item.selected { border-color: var(--amber); background: rgba(240,160,48,0.08); }
+  .match-item.matched { border-color: var(--green); background: rgba(76,218,138,0.08); color: var(--green); }
+  .match-item.wrong { border-color: var(--red); background: rgba(240,80,112,0.08); animation: shake 0.4s; }
+  .match-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .match-item.matched .match-num { color: var(--green); }
+
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-6px)}
+    75%{transform:translateX(6px)}
+  }
+
+  /* ── TRUE / FALSE ── */
+  .tf-item {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border-radius: 2px;
+  }
+  .tf-statement {
+    font-size: 14px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  .tf-statement .para-ref {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 1px 5px;
+    margin-right: 5px;
+  }
+  .tf-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .tf-btn {
+    padding: 6px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+  }
+  .tf-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .tf-btn.selected-true { border-color: var(--green); background: rgba(76,218,138,0.12); color: var(--green); }
+  .tf-btn.selected-false { border-color: var(--red); background: rgba(240,80,112,0.12); color: var(--red); }
+  .tf-btn.correct { border-color: var(--green); background: rgba(76,218,138,0.2); color: var(--green); }
+  .tf-btn.incorrect { border-color: var(--red); background: rgba(240,80,112,0.2); color: var(--red); }
+  .tf-feedback {
+    font-size: 12.5px;
+    padding: 8px 10px;
+    border-left: 3px solid transparent;
+    display: none;
+    line-height: 1.5;
+  }
+  .tf-feedback.show { display: block; }
+  .tf-feedback.correct-fb {
+    border-color: var(--green);
+    background: rgba(76,218,138,0.07);
+    color: var(--green);
+  }
+  .tf-feedback.wrong-fb {
+    border-color: var(--red);
+    background: rgba(240,80,112,0.07);
+    color: var(--red);
+  }
+  .tf-feedback .justify-quote {
+    font-style: italic;
+    opacity: 0.85;
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* ── COLLOCATION DRAG DROP ── */
+  .collocation-section { margin-bottom: 20px; }
+  .word-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    margin-bottom: 16px;
+    min-height: 50px;
+  }
+  .word-token {
+    background: var(--surface2);
+    border: 1.5px solid var(--teal);
+    padding: 5px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--teal);
+    cursor: grab;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .word-token:hover { background: rgba(25,196,168,0.1); }
+  .word-token.dragging { opacity: 0.4; }
+  .word-token.used { opacity: 0.3; cursor: default; pointer-events: none; }
+  .collocation-targets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .collocation-slot {
+    background: var(--surface);
+    border: 1.5px dashed var(--border);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    transition: border-color 0.2s;
+    min-height: 44px;
+  }
+  .collocation-slot.drag-over { border-color: var(--amber); border-style: solid; }
+  .collocation-slot.filled { border-style: solid; border-color: var(--green); }
+  .collocation-slot.wrong-fill { border-color: var(--red); }
+  .collocation-slot .prefix {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--teal);
+    white-space: nowrap;
+  }
+  .slot-content {
+    flex: 1;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+  .slot-placeholder { color: var(--border); font-style: italic; }
+  .slot-definition {
+    font-size: 11.5px;
+    color: var(--muted);
+    display: none;
+    margin-top: 3px;
+  }
+  .collocation-slot.filled .slot-definition { display: block; }
+
+  /* ── GAP FILL / COMPREHENSION ── */
+  .question-block {
+    margin-bottom: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+  }
+  .question-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .question-text {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  .question-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+  }
+  .question-input:focus { border-color: var(--teal); }
+  .question-input.correct-input { border-color: var(--green); }
+  .question-input.wrong-input  { border-color: var(--red); }
+  .check-btn {
+    margin-top: 8px;
+    padding: 7px 18px;
+    background: var(--teal);
+    color: var(--bg);
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: opacity 0.15s;
+  }
+  .check-btn:hover { opacity: 0.85; }
+  .check-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
+  .q-feedback {
+    margin-top: 8px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    display: none;
+    line-height: 1.5;
+  }
+  .q-feedback.show { display: block; }
+  .q-feedback.correct-fb { background: rgba(76,218,138,0.08); border-left: 3px solid var(--green); color: var(--green); }
+  .q-feedback.wrong-fb   { background: rgba(240,80,112,0.08);  border-left: 3px solid var(--red);   color: var(--red); }
+
+  /* ── MULTIPLE CHOICE ── */
+  .mc-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .mc-opt {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s;
+  }
+  .mc-opt:hover { border-color: var(--teal); }
+  .mc-opt .opt-letter {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+    width: 18px;
+  }
+  .mc-opt.selected { border-color: var(--amber); background: rgba(240,160,48,0.08); }
+  .mc-opt.correct { border-color: var(--green); background: rgba(76,218,138,0.1); color: var(--green); }
+  .mc-opt.correct .opt-letter { color: var(--green); }
+  .mc-opt.incorrect { border-color: var(--red); background: rgba(240,80,112,0.1); color: var(--red); }
+
+  /* ── SUBMIT / NEXT BUTTONS ── */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .btn-primary {
+    padding: 10px 24px;
+    background: var(--teal);
+    color: var(--bg);
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary {
+    padding: 10px 24px;
+    background: transparent;
+    color: var(--teal);
+    border: 1.5px solid var(--teal);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: rgba(25,196,168,0.08); }
+
+  /* ── READING TEXT (embedded) ── */
+  .reading-text {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--teal);
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+    line-height: 1.75;
+  }
+  .reading-text h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 14px;
+    color: var(--teal);
+    letter-spacing: 2px;
+  }
+  .reading-text p { margin-bottom: 12px; text-align: justify; }
+  .reading-text p:last-child { margin-bottom: 0; }
+  .reading-text .para-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--teal);
+    background: rgba(25,196,168,0.1);
+    padding: 1px 5px;
+    margin-right: 5px;
+  }
+  .reading-text em { color: var(--teal); font-style: italic; }
+  .reading-toggle {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    margin-bottom: 12px;
+    transition: color 0.15s;
+  }
+  .reading-toggle:hover { color: var(--teal); border-color: var(--teal); }
+
+  /* ── RESULTS PANEL ── */
+  .results-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    text-align: center;
+  }
+  .result-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 56px;
+    font-weight: 700;
+    color: var(--teal);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .result-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .result-bars {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .result-bar-item {
+    text-align: center;
+    min-width: 90px;
+  }
+  .result-bar-item .bar-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 6px;
+  }
+  .result-bar-item .bar-track {
+    height: 80px;
+    width: 28px;
+    background: var(--surface2);
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-bar-item .bar-fill {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: var(--teal);
+    transition: height 0.8s ease;
+  }
+  .result-bar-item .bar-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    margin-top: 4px;
+  }
+
+  /* ── FLASH ── */
+  .flash-success {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--green-dim);
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 10px 18px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .flash-success.show { opacity: 1; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="icon">📗</div>
+    <div>
+      <div class="title">Life Concerns</div>
+      <div class="sub">LYCÉE BACHIR NABHENI, HAMMAM-LIF · MRS MAJDOUB · 2025–2026 · UNIT 4 · LESSON 1</div>
+    </div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label">
+      <span>Progress</span>
+      <span id="progressText">0 / 5 exercises</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+  <div class="score-chip" id="scoreChip">Score: 0 pts</div>
+</header>
+
+<!-- FLASH -->
+<div class="flash-success" id="flashMsg">✓ Correct!</div>
+
+<main>
+
+  <!-- EXERCISE NAVIGATION -->
+  <nav class="ex-nav" id="exNav">
+    <div class="ex-tab active" onclick="showEx(0)" id="tab0">
+      A. Vocabulary <div class="done-dot"></div>
+    </div>
+    <div class="ex-tab" onclick="showEx(1)" id="tab1">
+      B. Collocations <div class="done-dot"></div>
+    </div>
+    <div class="ex-tab" onclick="showEx(2)" id="tab2">
+      C. Gist Reading <div class="done-dot"></div>
+    </div>
+    <div class="ex-tab" onclick="showEx(3)" id="tab3">
+      D. True / False <div class="done-dot"></div>
+    </div>
+    <div class="ex-tab" onclick="showEx(4)" id="tab4">
+      E. Comprehension <div class="done-dot"></div>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════
+       EXERCISE A: VOCABULARY MATCH
+  ══════════════════════════════ -->
+  <div class="exercise active" id="ex0">
+    <div class="ex-header">
+      <div class="ex-badge">📝</div>
+      <div>
+        <div class="ex-title">Vocabulary Matching</div>
+        <div class="ex-desc">Click a word on the left, then click its matching definition on the right.</div>
+      </div>
+      <div class="ex-points">6 points</div>
+    </div>
+    <div class="instruction">Click a word (left column) to select it. Then click the matching definition (right column). Complete all six pairs.</div>
+
+    <div class="match-grid">
+      <div>
+        <h4>Words &amp; Phrases</h4>
+        <div class="match-item" onclick="selectLeft(this)" data-id="1"><span class="match-num">1.</span> a balanced diet</div>
+        <div class="match-item" onclick="selectLeft(this)" data-id="2"><span class="match-num">2.</span> go on a diet</div>
+        <div class="match-item" onclick="selectLeft(this)" data-id="3"><span class="match-num">3.</span> lifestyle</div>
+        <div class="match-item" onclick="selectLeft(this)" data-id="4"><span class="match-num">4.</span> deficiency</div>
+        <div class="match-item" onclick="selectLeft(this)" data-id="5"><span class="match-num">5.</span> lifeless</div>
+        <div class="match-item" onclick="selectLeft(this)" data-id="6"><span class="match-num">6.</span> life issue</div>
+      </div>
+      <div>
+        <h4>Definitions</h4>
+        <div class="match-item" onclick="selectRight(this)" data-id="1"><span class="match-num">a.</span> the way in which a person or group lives</div>
+        <div class="match-item" onclick="selectRight(this)" data-id="4"><span class="match-num">b.</span> a diet providing adequate amounts of all nutrients for good health</div>
+        <div class="match-item" onclick="selectRight(this)" data-id="5"><span class="match-num">c.</span> dead or apparently dead; dull and empty</div>
+        <div class="match-item" onclick="selectRight(this)" data-id="2"><span class="match-num">d.</span> to begin eating less or specific foods to improve health or lose weight</div>
+        <div class="match-item" onclick="selectRight(this)" data-id="6"><span class="match-num">e.</span> an important topic or problem for debate or discussion</div>
+        <div class="match-item" onclick="selectRight(this)" data-id="3"><span class="match-num">f.</span> a lack or shortage of something the body needs</div>
+      </div>
+    </div>
+
+    <div id="matchScore" style="font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); margin-bottom:12px;"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="resetMatch()">↺ Reset</button>
+      <button class="btn-primary" onclick="nextEx(1)">Next Exercise →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       EXERCISE B: COLLOCATIONS
+  ══════════════════════════════ -->
+  <div class="exercise" id="ex1">
+    <div class="ex-header">
+      <div class="ex-badge">🔗</div>
+      <div>
+        <div class="ex-title">Life Collocations</div>
+        <div class="ex-desc">Drag each word from the bank and drop it onto the correct "life + ___" slot.</div>
+      </div>
+      <div class="ex-points">6 points</div>
+    </div>
+    <div class="instruction">Drag a word from the Word Bank below and drop it onto the correct slot to form a collocation with <strong>life</strong>.</div>
+
+    <div id="wordBank" class="word-bank">
+      <div class="word-token" draggable="true" data-word="style" ondragstart="dragStart(event)">style</div>
+      <div class="word-token" draggable="true" data-word="long" ondragstart="dragStart(event)">long</div>
+      <div class="word-token" draggable="true" data-word="time" ondragstart="dragStart(event)">time</div>
+      <div class="word-token" draggable="true" data-word="less" ondragstart="dragStart(event)">less</div>
+      <div class="word-token" draggable="true" data-word="like" ondragstart="dragStart(event)">like</div>
+      <div class="word-token" draggable="true" data-word="work" ondragstart="dragStart(event)">work</div>
+    </div>
+
+    <div class="collocation-targets" id="collocationTargets">
+      <div class="collocation-slot" data-answer="style" ondragover="dragOver(event)" ondrop="dropWord(event)" ondragleave="dragLeave(event)">
+        <span class="prefix">life</span>
+        <div class="slot-content">
+          <div class="slot-placeholder">drop here…</div>
+          <div class="slot-definition">the way in which a person lives</div>
+        </div>
+      </div>
+      <div class="collocation-slot" data-answer="long" ondragover="dragOver(event)" ondrop="dropWord(event)" ondragleave="dragLeave(event)">
+        <span class="prefix">life</span>
+        <div class="slot-content">
+          <div class="slot-placeholder">drop here…</div>
+          <div class="slot-definition">lasting throughout a person's entire life</div>
+        </div>
+      </div>
+      <div class="collocation-slot" data-answer="time" ondragover="dragOver(event)" ondrop="dropWord(event)" ondragleave="dragLeave(event)">
+        <span class="prefix">life</span>
+        <div class="slot-content">
+          <div class="slot-placeholder">drop here…</div>
+          <div class="slot-definition">the duration of a person's life</div>
+        </div>
+      </div>
+      <div class="collocation-slot" data-answer="less" ondragover="dragOver(event)" ondrop="dropWord(event)" ondragleave="dragLeave(event)">
+        <span class="prefix">life</span>
+        <div class="slot-content">
+          <div class="slot-placeholder">drop here…</div>
+          <div class="slot-definition">dead or apparently dead; dull and empty</div>
+        </div>
+      </div>
+      <div class="collocation-slot" data-answer="like" ondragover="dragOver(event)" ondrop="dropWord(event)" ondragleave="dragLeave(event)">
+        <span class="prefix">life</span>
+        <div class="slot-content">
+          <div class="slot-placeholder">drop here…</div>
+          <div class="slot-definition">seeming real or alive</div>
+        </div>
+      </div>
+      <div class="collocation-slot" data-answer="work" ondragover="dragOver(event)" ondrop="dropWord(event)" ondragleave="dragLeave(event)">
+        <span class="prefix">life</span>
+        <div class="slot-content">
+          <div class="slot-placeholder">drop here…</div>
+          <div class="slot-definition">the principal work of a person's lifetime</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="collocationScore" style="font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); margin-top:12px;"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="resetCollocations()">↺ Reset</button>
+      <button class="btn-primary" onclick="nextEx(2)">Next Exercise →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       EXERCISE C: GIST READING (MC)
+  ══════════════════════════════ -->
+  <div class="exercise" id="ex2">
+    <div class="ex-header">
+      <div class="ex-badge">👁️</div>
+      <div>
+        <div class="ex-title">Reading for Gist</div>
+        <div class="ex-desc">Read quickly and match each paragraph to the correct title.</div>
+      </div>
+      <div class="ex-points">3 points</div>
+    </div>
+    <div class="instruction">Read the text carefully, then choose the best title for each paragraph (1–3).</div>
+
+    <button class="reading-toggle" onclick="toggleReading()">📄 Show / Hide Reading Text</button>
+    <div class="reading-text" id="readingText" style="display:none;">
+      <h3>FIVE A DAY</h3>
+      <p><span class="para-num">[1]</span> Do you eat well? Do you take regular exercise? Do you get enough sleep? These are some of the life concerns that health experts are worried about. Diet has become a central life issue in many countries, including Tunisia, where fast food culture is gradually replacing the traditional balanced diet. Nutritionists and <em>dietitians</em> warn that a diet <em>deficient</em> in fruits and vegetables is one of the biggest health risks people face today.</p>
+      <p><span class="para-num">[2]</span> Health authorities in many countries promote the idea of eating five portions of fruit and vegetables every day — widely known as "Five a Day." The idea is simple: a healthy, balanced diet protects us against serious illnesses such as heart disease, type 2 diabetes, and some cancers. Yet studies show that a large number of people — particularly young people — fail to follow this advice. Their <em>lifestyle</em> often involves little exercise, too much screen time, and poor eating habits.</p>
+      <p><span class="para-num">[3]</span> The impact of poor diet is not only physical. A <em>lifeless</em> routine — waking up late, eating processed food, and spending hours on social media — can also affect mental health. Young people who adopt a healthier <em>lifestyle</em> report feeling more energetic and positive about life. The connection between what we eat and how we feel is, according to experts, a <em>lifelong</em> lesson everyone must learn. Fortunately, making a change does not have to be dramatic. Small steps can make a surprising difference to your quality of life.</p>
+    </div>
+
+    <div class="question-block" id="gist0">
+      <div class="question-num">PARAGRAPH 1 — Choose the best title:</div>
+      <div class="mc-options">
+        <div class="mc-opt" onclick="checkMC(this, 'gist0', false)"><span class="opt-letter">A</span> Small Changes, Big Difference</div>
+        <div class="mc-opt" onclick="checkMC(this, 'gist0', true)"><span class="opt-letter">B</span> The Danger of an Unbalanced Diet</div>
+        <div class="mc-opt" onclick="checkMC(this, 'gist0', false)"><span class="opt-letter">C</span> Healthy Eating: A Government Priority</div>
+      </div>
+      <div class="q-feedback" id="fb-gist0"></div>
+    </div>
+
+    <div class="question-block" id="gist1">
+      <div class="question-num">PARAGRAPH 2 — Choose the best title:</div>
+      <div class="mc-options">
+        <div class="mc-opt" onclick="checkMC(this, 'gist1', false)"><span class="opt-letter">A</span> Small Changes, Big Difference</div>
+        <div class="mc-opt" onclick="checkMC(this, 'gist1', false)"><span class="opt-letter">B</span> The Danger of an Unbalanced Diet</div>
+        <div class="mc-opt" onclick="checkMC(this, 'gist1', true)"><span class="opt-letter">C</span> Healthy Eating: A Government Priority</div>
+      </div>
+      <div class="q-feedback" id="fb-gist1"></div>
+    </div>
+
+    <div class="question-block" id="gist2">
+      <div class="question-num">PARAGRAPH 3 — Choose the best title:</div>
+      <div class="mc-options">
+        <div class="mc-opt" onclick="checkMC(this, 'gist2', true)"><span class="opt-letter">A</span> Small Changes, Big Difference</div>
+        <div class="mc-opt" onclick="checkMC(this, 'gist2', false)"><span class="opt-letter">B</span> The Danger of an Unbalanced Diet</div>
+        <div class="mc-opt" onclick="checkMC(this, 'gist2', false)"><span class="opt-letter">C</span> Healthy Eating: A Government Priority</div>
+      </div>
+      <div class="q-feedback" id="fb-gist2"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="nextEx(3)">Next Exercise →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       EXERCISE D: TRUE / FALSE
+  ══════════════════════════════ -->
+  <div class="exercise" id="ex3">
+    <div class="ex-header">
+      <div class="ex-badge">✓✗</div>
+      <div>
+        <div class="ex-title">True or False?</div>
+        <div class="ex-desc">Read each statement and decide: True or False? Then see the justification from the text.</div>
+      </div>
+      <div class="ex-points">8 points</div>
+    </div>
+    <div class="instruction">Click <strong>TRUE</strong> or <strong>FALSE</strong> for each statement. You will see immediate feedback and the key phrase from the text.</div>
+
+    <div class="tf-item" id="tf0">
+      <div class="tf-statement"><span class="para-ref">Para. 1</span> Fast food is replacing the traditional balanced diet in many countries.</div>
+      <div class="tf-buttons">
+        <button class="tf-btn" onclick="checkTF(0, true, true)">TRUE</button>
+        <button class="tf-btn" onclick="checkTF(0, false, true)">FALSE</button>
+      </div>
+      <div class="tf-feedback" id="tf-fb0">
+        <strong>✓ TRUE</strong>
+        <span class="justify-quote">"fast food culture is gradually replacing the traditional balanced diet"</span>
+      </div>
+    </div>
+
+    <div class="tf-item" id="tf1">
+      <div class="tf-statement"><span class="para-ref">Para. 2</span> The "Five a Day" rule recommends eating five full meals every day.</div>
+      <div class="tf-buttons">
+        <button class="tf-btn" onclick="checkTF(1, true, false)">TRUE</button>
+        <button class="tf-btn" onclick="checkTF(1, false, false)">FALSE</button>
+      </div>
+      <div class="tf-feedback" id="tf-fb1">
+        <strong>✗ FALSE</strong>
+        <span class="justify-quote">"eating five portions of fruit and vegetables every day" — not five meals.</span>
+      </div>
+    </div>
+
+    <div class="tf-item" id="tf2">
+      <div class="tf-statement"><span class="para-ref">Para. 3</span> A poor diet can only cause physical health problems.</div>
+      <div class="tf-buttons">
+        <button class="tf-btn" onclick="checkTF(2, true, false)">TRUE</button>
+        <button class="tf-btn" onclick="checkTF(2, false, false)">FALSE</button>
+      </div>
+      <div class="tf-feedback" id="tf-fb2">
+        <strong>✗ FALSE</strong>
+        <span class="justify-quote">"The impact of poor diet is not only physical" — it also affects mental health.</span>
+      </div>
+    </div>
+
+    <div class="tf-item" id="tf3">
+      <div class="tf-statement"><span class="para-ref">Para. 3</span> To improve your health, you must make big, dramatic changes to your lifestyle.</div>
+      <div class="tf-buttons">
+        <button class="tf-btn" onclick="checkTF(3, true, false)">TRUE</button>
+        <button class="tf-btn" onclick="checkTF(3, false, false)">FALSE</button>
+      </div>
+      <div class="tf-feedback" id="tf-fb3">
+        <strong>✗ FALSE</strong>
+        <span class="justify-quote">"making a change does not have to be dramatic. Small steps… can make a surprising difference."</span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="nextEx(4)">Next Exercise →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       EXERCISE E: COMPREHENSION
+  ══════════════════════════════ -->
+  <div class="exercise" id="ex4">
+    <div class="ex-header">
+      <div class="ex-badge">💬</div>
+      <div>
+        <div class="ex-title">Comprehension Questions</div>
+        <div class="ex-desc">Answer in complete sentences. Check your answer against the model.</div>
+      </div>
+      <div class="ex-points">8 points</div>
+    </div>
+    <div class="instruction">Type your answer in the box, then click <strong>Check</strong> to compare with a model answer. Use complete sentences!</div>
+
+    <button class="reading-toggle" onclick="toggleReading2()">📄 Show / Hide Reading Text</button>
+    <div class="reading-text" id="readingText2" style="display:none;">
+      <h3>FIVE A DAY</h3>
+      <p><span class="para-num">[1]</span> Do you eat well? Do you take regular exercise? Do you get enough sleep? These are some of the life concerns that health experts are worried about. Diet has become a central life issue in many countries, including Tunisia, where fast food culture is gradually replacing the traditional balanced diet. Nutritionists and <em>dietitians</em> warn that a diet <em>deficient</em> in fruits and vegetables is one of the biggest health risks people face today.</p>
+      <p><span class="para-num">[2]</span> Health authorities in many countries promote the idea of eating five portions of fruit and vegetables every day — widely known as "Five a Day." The idea is simple: a healthy, balanced diet protects us against serious illnesses such as heart disease, type 2 diabetes, and some cancers. Yet studies show that a large number of people — particularly young people — fail to follow this advice. Their <em>lifestyle</em> often involves little exercise, too much screen time, and poor eating habits.</p>
+      <p><span class="para-num">[3]</span> The impact of poor diet is not only physical. A <em>lifeless</em> routine — waking up late, eating processed food, and spending hours on social media — can also affect mental health. Young people who adopt a healthier <em>lifestyle</em> report feeling more energetic and positive about life. The connection between what we eat and how we feel is, according to experts, a <em>lifelong</em> lesson everyone must learn. Fortunately, making a change does not have to be dramatic. Small steps can make a surprising difference to your quality of life.</p>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">QUESTION 1 OF 4</div>
+      <div class="question-text">What health problem does the writer highlight at the start of the text?</div>
+      <textarea class="question-input" id="ans0" rows="2" placeholder="Type your answer here…"></textarea>
+      <div class="btn-row" style="margin-top:6px;">
+        <button class="check-btn" onclick="checkAnswer(0)">Check Answer</button>
+      </div>
+      <div class="q-feedback" id="ans-fb0">
+        <strong>Model answer:</strong> The writer highlights the problem of people not eating a balanced diet — particularly that diets deficient in fruits and vegetables are a major health risk.
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">QUESTION 2 OF 4</div>
+      <div class="question-text">What serious illnesses can a balanced diet help to prevent?</div>
+      <textarea class="question-input" id="ans1" rows="2" placeholder="Type your answer here…"></textarea>
+      <div class="btn-row" style="margin-top:6px;">
+        <button class="check-btn" onclick="checkAnswer(1)">Check Answer</button>
+      </div>
+      <div class="q-feedback" id="ans-fb1">
+        <strong>Model answer:</strong> A balanced diet can help prevent serious illnesses such as heart disease, type 2 diabetes, and some types of cancer.
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">QUESTION 3 OF 4</div>
+      <div class="question-text">According to paragraph 2, who is most affected by poor eating habits?</div>
+      <textarea class="question-input" id="ans2" rows="2" placeholder="Type your answer here…"></textarea>
+      <div class="btn-row" style="margin-top:6px;">
+        <button class="check-btn" onclick="checkAnswer(2)">Check Answer</button>
+      </div>
+      <div class="q-feedback" id="ans-fb2">
+        <strong>Model answer:</strong> According to paragraph 2, young people are the most affected by poor eating habits.
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">QUESTION 4 OF 4</div>
+      <div class="question-text">Give <u>two</u> practical suggestions the writer makes in paragraph 3 to improve your lifestyle.</div>
+      <textarea class="question-input" id="ans3" rows="3" placeholder="Type your answer here…"></textarea>
+      <div class="btn-row" style="margin-top:6px;">
+        <button class="check-btn" onclick="checkAnswer(3)">Check Answer</button>
+      </div>
+      <div class="q-feedback" id="ans-fb3">
+        <strong>Model answer:</strong> The writer suggests two practical steps: first, adding one piece of fruit to your daily meal; second, walking for twenty minutes a day. (Also acceptable: switching off your phone an hour before bed.)
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="showResults()">📊 See My Results</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       RESULTS
+  ══════════════════════════════ -->
+  <div class="exercise" id="exResults">
+    <div class="ex-header">
+      <div class="ex-badge">🏆</div>
+      <div>
+        <div class="ex-title">Your Results</div>
+        <div class="ex-desc">Well done for completing all exercises!</div>
+      </div>
+    </div>
+
+    <div class="results-panel">
+      <div class="result-score" id="finalScore">—</div>
+      <div class="result-label" id="finalLabel">Total Points Earned</div>
+      <div class="result-bars" id="resultBars"></div>
+      <p id="resultMessage" style="font-size:13.5px; color:var(--muted); max-width:420px; margin:0 auto 20px;"></p>
+      <div class="btn-row" style="justify-content:center;">
+        <button class="btn-secondary" onclick="restartAll()">↺ Try Again</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── STATE ──────────────────────────────────────────────
+let totalScore = 0;
+let exScores = [0, 0, 0, 0, 0]; // one per exercise
+let exMax    = [6, 6, 3, 8, 8];
+let exDone   = [false,false,false,false,false];
+let completedCount = 0;
+
+// ── NAVIGATION ────────────────────────────────────────
+function showEx(idx) {
+  document.querySelectorAll('.exercise').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.ex-tab').forEach(e => e.classList.remove('active'));
+  document.getElementById('ex' + idx).classList.add('active');
+  document.getElementById('tab' + idx).classList.add('active');
+}
+
+function nextEx(idx) {
+  showEx(idx);
+  window.scrollTo(0,0);
+}
+
+// ── SCORE ────────────────────────────────────────────
+function updateScore(delta) {
+  totalScore += delta;
+  document.getElementById('scoreChip').textContent = 'Score: ' + totalScore + ' pts';
+}
+
+function markDone(exIdx, score) {
+  exScores[exIdx] = score;
+  if (!exDone[exIdx]) {
+    exDone[exIdx] = true;
+    completedCount++;
+    document.getElementById('tab' + exIdx).classList.add('completed');
+    const fill = Math.round((completedCount / 5) * 100);
+    document.getElementById('progressFill').style.width = fill + '%';
+    document.getElementById('progressText').textContent = completedCount + ' / 5 exercises';
+  }
+}
+
+// ── FLASH ────────────────────────────────────────────
+function flash(msg = '✓ Correct!') {
+  const el = document.getElementById('flashMsg');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1400);
+}
+
+// ══════════════════════════════════════════════
+// EXERCISE A: MATCHING
+// ══════════════════════════════════════════════
+let matchSelected = null; // { el, id }
+let matchScore_A = 0;
+
+function selectLeft(el) {
+  if (el.classList.contains('matched')) return;
+  document.querySelectorAll('#ex0 .match-col:first-child .match-item').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  matchSelected = { el, id: parseInt(el.dataset.id), side: 'left' };
+  tryMatch();
+}
+
+function selectRight(el) {
+  if (el.classList.contains('matched')) return;
+  document.querySelectorAll('#ex0 .match-col:last-child .match-item').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  matchSelected = Object.assign({}, matchSelected, { right_el: el, right_id: parseInt(el.dataset.id) });
+  tryMatch();
+}
+
+function tryMatch() {
+  if (!matchSelected || !matchSelected.el || !matchSelected.right_el) return;
+  const lId = matchSelected.id;
+  const rId = matchSelected.right_id;
+  if (lId === rId) {
+    matchSelected.el.classList.add('matched');
+    matchSelected.right_el.classList.add('matched');
+    matchSelected.el.classList.remove('selected');
+    matchSelected.right_el.classList.remove('selected');
+    matchScore_A++;
+    updateScore(1);
+    flash('✓ Correct!');
+    document.getElementById('matchScore').textContent = 'Matched: ' + matchScore_A + ' / 6';
+    if (matchScore_A === 6) markDone(0, 6);
+  } else {
+    matchSelected.el.classList.add('wrong');
+    matchSelected.right_el.classList.add('wrong');
+    setTimeout(() => {
+      matchSelected.el.classList.remove('wrong','selected');
+      matchSelected.right_el.classList.remove('wrong','selected');
+    }, 600);
+  }
+  matchSelected = null;
+}
+
+function resetMatch() {
+  document.querySelectorAll('#ex0 .match-item').forEach(e => {
+    e.classList.remove('matched','selected','wrong');
+  });
+  matchScore_A = 0;
+  matchSelected = null;
+  document.getElementById('matchScore').textContent = '';
+}
+
+// ══════════════════════════════════════════════
+// EXERCISE B: DRAG & DROP COLLOCATIONS
+// ══════════════════════════════════════════════
+let draggedWord = null;
+let collocationScore_B = 0;
+
+function dragStart(e) {
+  draggedWord = e.target.dataset.word;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function dragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function dropWord(e) {
+  e.preventDefault();
+  const slot = e.currentTarget;
+  slot.classList.remove('drag-over');
+
+  if (slot.classList.contains('filled')) return;
+  if (!draggedWord) return;
+
+  const answer = slot.dataset.answer;
+  const content = slot.querySelector('.slot-content');
+  const placeholder = slot.querySelector('.slot-placeholder');
+  const definition = slot.querySelector('.slot-definition');
+
+  // Remove dragging class
+  document.querySelectorAll('.word-token').forEach(t => t.classList.remove('dragging'));
+
+  if (draggedWord === answer) {
+    placeholder.textContent = draggedWord;
+    placeholder.style.color = 'var(--teal)';
+    placeholder.style.fontWeight = '600';
+    slot.classList.add('filled');
+    // Mark the token as used
+    document.querySelectorAll('.word-token').forEach(t => {
+      if (t.dataset.word === draggedWord) t.classList.add('used');
+    });
+    collocationScore_B++;
+    updateScore(1);
+    flash('✓ life' + draggedWord + '!');
+    document.getElementById('collocationScore').textContent = 'Completed: ' + collocationScore_B + ' / 6';
+    if (collocationScore_B === 6) markDone(1, 6);
+  } else {
+    slot.classList.add('wrong-fill');
+    setTimeout(() => slot.classList.remove('wrong-fill'), 600);
+  }
+  draggedWord = null;
+}
+
+function resetCollocations() {
+  document.querySelectorAll('.collocation-slot').forEach(slot => {
+    slot.classList.remove('filled', 'wrong-fill', 'drag-over');
+    const ph = slot.querySelector('.slot-placeholder');
+    ph.textContent = 'drop here…';
+    ph.style.color = '';
+    ph.style.fontWeight = '';
+  });
+  document.querySelectorAll('.word-token').forEach(t => t.classList.remove('used'));
+  collocationScore_B = 0;
+  document.getElementById('collocationScore').textContent = '';
+}
+
+// ══════════════════════════════════════════════
+// EXERCISE C: MULTIPLE CHOICE (GIST)
+// ══════════════════════════════════════════════
+let gistScore_C = 0;
+let gistAnswered = [false, false, false];
+
+function checkMC(el, qId, isCorrect) {
+  const idx = parseInt(qId.replace('gist',''));
+  if (gistAnswered[idx]) return;
+  gistAnswered[idx] = true;
+
+  const opts = el.closest('.question-block').querySelectorAll('.mc-opt');
+  opts.forEach(o => o.style.pointerEvents = 'none');
+
+  const fb = document.getElementById('fb-' + qId);
+
+  if (isCorrect) {
+    el.classList.add('correct');
+    fb.textContent = '✓ Correct! Well done.';
+    fb.className = 'q-feedback show correct-fb';
+    gistScore_C++;
+    updateScore(1);
+    flash('✓ Correct!');
+    if (gistScore_C === 3) markDone(2, 3);
+  } else {
+    el.classList.add('incorrect');
+    opts.forEach(o => { if (o.querySelector('.opt-letter') && ['A','B','C'][['A','B','C'].indexOf(o.querySelector('.opt-letter').textContent)] ) {} });
+    // reveal correct
+    opts.forEach(o => {
+      if (o.onclick && o.onclick.toString().includes('true')) o.classList.add('correct');
+    });
+    fb.textContent = '✗ Not quite. The highlighted option is correct.';
+    fb.className = 'q-feedback show wrong-fb';
+  }
+  fb.classList.add('show');
+}
+
+function toggleReading() {
+  const rt = document.getElementById('readingText');
+  rt.style.display = rt.style.display === 'none' ? 'block' : 'none';
+}
+function toggleReading2() {
+  const rt = document.getElementById('readingText2');
+  rt.style.display = rt.style.display === 'none' ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════════
+// EXERCISE D: TRUE / FALSE
+// ══════════════════════════════════════════════
+let tfAnswered = [false, false, false, false];
+let tfScore_D = 0;
+
+function checkTF(idx, clickedTrue, correctAnswer) {
+  if (tfAnswered[idx]) return;
+  tfAnswered[idx] = true;
+
+  const item = document.getElementById('tf' + idx);
+  const buttons = item.querySelectorAll('.tf-btn');
+  const fb = document.getElementById('tf-fb' + idx);
+
+  buttons.forEach(b => b.style.pointerEvents = 'none');
+
+  const isCorrect = (clickedTrue === correctAnswer);
+  const clickedBtn = clickedTrue ? buttons[0] : buttons[1];
+  const correctBtn = correctAnswer ? buttons[0] : buttons[1];
+
+  if (isCorrect) {
+    clickedBtn.classList.add('correct');
+    fb.className = 'tf-feedback show correct-fb';
+    tfScore_D++;
+    updateScore(2); // 2 pts per TF (T/F + justification)
+    flash('✓ Correct!');
+    if (tfScore_D === 4) markDone(3, 8);
+  } else {
+    clickedBtn.classList.add('incorrect');
+    correctBtn.classList.add('correct');
+    fb.className = 'tf-feedback show wrong-fb';
+    // change colour of feedback header
+    fb.querySelector('strong').textContent = 'Incorrect. The correct answer is: ' + (correctAnswer ? 'TRUE' : 'FALSE');
+  }
+}
+
+// ══════════════════════════════════════════════
+// EXERCISE E: COMPREHENSION (open-ended → model)
+// ══════════════════════════════════════════════
+let ansChecked = [false, false, false, false];
+let eScore = 0;
+
+function checkAnswer(idx) {
+  if (ansChecked[idx]) return;
+  const input = document.getElementById('ans' + idx);
+  const fb = document.getElementById('ans-fb' + idx);
+  const btn = input.parentElement.querySelector('.check-btn');
+
+  if (!input.value.trim()) return;
+
+  ansChecked[idx] = true;
+  btn.disabled = true;
+  input.style.pointerEvents = 'none';
+
+  fb.className = 'q-feedback show correct-fb';
+  input.classList.add('correct-input');
+  updateScore(2);
+  eScore++;
+  flash('Model answer shown below ✓');
+  if (eScore === 4) markDone(4, 8);
+}
+
+// ══════════════════════════════════════════════
+// RESULTS
+// ══════════════════════════════════════════════
+function showResults() {
+  // mark ex4 done regardless
+  if (!exDone[4]) markDone(4, eScore * 2);
+
+  document.querySelectorAll('.exercise').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.ex-tab').forEach(e => e.classList.remove('active'));
+  document.getElementById('exResults').classList.add('active');
+
+  const maxTotal = exMax.reduce((a,b) => a+b, 0);
+  const pct = Math.round((totalScore / maxTotal) * 100);
+
+  document.getElementById('finalScore').textContent = totalScore + ' / ' + maxTotal;
+  document.getElementById('finalLabel').textContent = pct + '% — ' + getGrade(pct);
+
+  // message
+  const messages = {
+    90: "Excellent work! You have mastered this lesson's vocabulary and reading skills. 🌟",
+    70: "Very good! You have a strong understanding of the key language from this lesson.",
+    50: "Good effort! Review the sections where you had difficulties and try again.",
+    0:  "Keep practising! Read the text again carefully and review the vocabulary list."
+  };
+  const threshold = [90, 70, 50, 0].find(t => pct >= t);
+  document.getElementById('resultMessage').textContent = messages[threshold];
+
+  // bars
+  const labels = ['Vocab', 'Colloc.', 'Gist', 'T/F', 'Compreh.'];
+  const barsEl = document.getElementById('resultBars');
+  barsEl.innerHTML = '';
+  exScores.forEach((s, i) => {
+    const m = exMax[i];
+    const pctBar = m > 0 ? Math.round((s / m) * 100) : 0;
+    barsEl.innerHTML += `
+      <div class="result-bar-item">
+        <div class="bar-label">${labels[i]}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="height:${pctBar}%"></div>
+        </div>
+        <div class="bar-val">${s}/${m}</div>
+      </div>`;
+  });
+}
+
+function getGrade(pct) {
+  if (pct >= 90) return 'Excellent';
+  if (pct >= 75) return 'Very Good';
+  if (pct >= 60) return 'Good';
+  if (pct >= 50) return 'Satisfactory';
+  return 'Needs Review';
+}
+
+function restartAll() {
+  location.reload();
+}
+</script>
+
+</body>
+</html>
